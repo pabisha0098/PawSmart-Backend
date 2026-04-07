@@ -1,4 +1,5 @@
 from django.contrib.auth import get_user_model
+from django.db.models import Q
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -74,6 +75,11 @@ class StaffListView(APIView):
         qs = User.objects.filter(role__in=[User.Roles.STAFF, User.Roles.ADMIN]).order_by(
             "first_name", "last_name", "username"
         )
+        specialty = (request.query_params.get("specialty") or "").strip().lower()
+        if specialty == "vet":
+            qs = qs.filter(Q(staff_type=User.StaffType.VET) | Q(role=User.Roles.ADMIN))
+        elif specialty == "groomer":
+            qs = qs.filter(Q(staff_type=User.StaffType.GROOMER) | Q(role=User.Roles.ADMIN))
         data = [
             {
                 "id": u.id,
@@ -81,6 +87,7 @@ class StaffListView(APIView):
                 "email": u.email,
                 "first_name": u.first_name,
                 "last_name": u.last_name,
+                "staff_type": getattr(u, "staff_type", "") or "",
                 "display_name": (u.get_full_name() or u.username or u.email or "").strip(),
             }
             for u in qs
