@@ -4,6 +4,9 @@
 # Database
 db.sqlite3
 
+# Uploaded media (pet photos)
+media/
+
 # Python cache
 __pycache__/
 *.pyc
